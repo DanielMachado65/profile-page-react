@@ -1,9 +1,8 @@
 import { useMemo } from "react";
 import { parse } from "date-fns";
 import { contactMeta, languageMeta, profile } from "./global";
-import { Card } from "./components/Card";
 import { TimelineItem } from "./components/TimelineItem";
-import { Languages, GraduationCap, MapPin } from "lucide-react";
+import { Languages, GraduationCap, MapPin, Server, MonitorSmartphone, Code2, BriefcaseBusiness } from "lucide-react";
 
 export default function ResumePage() {
   const sortedExperiences = useMemo(() => {
@@ -24,12 +23,17 @@ export default function ResumePage() {
       .slice(0, 2);
   }, [profile.name]);
 
+  const stackIconMap = {
+    "Back-end": Server,
+    "Front-end": MonitorSmartphone,
+  } as const;
+
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-800">
       <header className="mx-auto max-w-5xl px-6 pt-10 pb-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-white bg-gradient-to-br from-indigo-100 via-white to-emerald-100 shadow-md ring-4 ring-indigo-100/70">
+          <div className="flex items-start gap-5">
+            <div className="relative flex h-36 w-36 shrink-0 items-center justify-center overflow-hidden rounded-[28px] border border-white bg-gradient-to-br from-indigo-100 via-white to-indigo-50 shadow-md ring-4 ring-indigo-100/70">
               {profile.photo ? (
                 <img
                   src={profile.photo}
@@ -84,50 +88,86 @@ export default function ResumePage() {
 
       <section className="mx-auto max-w-5xl px-6 grid gap-6">
         {/* Summary */}
-        <Card title="Resumo">
-          <p className="leading-relaxed">{profile.summary}</p>
-        </Card>
+        <article className="relative overflow-hidden rounded-2xl p-6 shadow-sm">
+          <span className="pointer-events-none absolute inset-y-6 left-4 w-1 rounded-full bg-indigo-300/70" />
+          <p className="pl-8 text-sm leading-relaxed text-zinc-700 md:text-base">
+            {profile.summary}
+          </p>
+        </article>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Education */}
-          <Card title="Educação">
-            <ul className="flex flex-col gap-4">
+        <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
+          <header className="flex items-center gap-3 pb-6 border-b border-zinc-100">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
+              <BriefcaseBusiness className="h-6 w-6" />
+            </span>
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-900">Experiência profissional</h2>
+              <p className="text-sm text-zinc-500">Projetos recentes, impacto e tecnologias chave</p>
+            </div>
+          </header>
+          <div className="relative mt-6">
+            <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-full w-px bg-indigo-200" />
+            <ol className="grid gap-14">
+              {sortedExperiences.map((exp, i) => (
+                <TimelineItem key={exp.company + exp.period} exp={exp} side={i % 2 === 0 ? "left" : "right"} />
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
+                <GraduationCap className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-900">Educação</h2>
+                <p className="text-xs text-zinc-500">Formação acadêmica e programas recentes</p>
+              </div>
+            </header>
+            <ul className="mt-5 flex flex-col gap-4">
               {profile.education.map((e) => (
                 <li
                   key={e.course}
-                  className="rounded-2xl border border-indigo-100 bg-white/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg"
+                  className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow"
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-600">
-                      <GraduationCap className="h-5 w-5" />
-                    </span>
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-indigo-900 md:text-base">{e.course}</p>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
-                        {e.period}
-                      </p>
-                      <p className="text-sm text-zinc-600">{e.org}</p>
-                    </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-zinc-900 md:text-base">{e.course}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                      {e.period}
+                    </p>
+                    <p className="text-sm text-zinc-600">{e.org}</p>
                   </div>
 
-                  <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-[11px] font-medium text-zinc-600">
-                    <MapPin className="h-4 w-4" /> {e.location}
+                  <div className="mt-4 flex justify-end">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-[11px] font-medium text-zinc-600">
+                      <MapPin className="h-4 w-4" /> {e.location}
+                    </span>
                   </div>
                 </li>
               ))}
             </ul>
-          </Card>
+          </section>
 
-          {/* Languages */}
-          <Card title="Idiomas">
-            <ul className="flex flex-col gap-3">
+          <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
+                <Languages className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-900">Idiomas</h2>
+                <p className="text-xs text-zinc-500">Proficiência em comunicação</p>
+              </div>
+            </header>
+            <ul className="mt-5 flex flex-col gap-3">
               {profile.languages.map((l) => {
                 const styles = languageMeta[l.level as keyof typeof languageMeta] ?? languageMeta.default;
 
                 return (
                   <li
                     key={l.name}
-                    className="rounded-xl border border-zinc-200 bg-white/80 px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="rounded-2xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow"
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
@@ -153,21 +193,47 @@ export default function ResumePage() {
                 );
               })}
             </ul>
-          </Card>
+          </section>
+
+          <section className="md:col-span-2 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
+                <Code2 className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-900">Stack técnico</h2>
+                <p className="text-xs text-zinc-500">Principais ecossistemas em que atuo</p>
+              </div>
+            </header>
+            <ul className="mt-5 flex flex-col gap-3">
+              {profile.techStacks?.map((stack) => {
+                const Icon = stackIconMap[stack.area as keyof typeof stackIconMap] ?? Code2;
+
+                return (
+                  <li
+                    key={stack.area}
+                    className="rounded-2xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-indigo-600">
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <div className="space-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                          {stack.area}
+                        </span>
+                        <p className="text-sm leading-snug text-zinc-700">
+                          {stack.items.join(" • ")}
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         </div>
 
-        {/* Experience */}
-        <Card title="Experiência">
-          <div className="relative py-2">
-            <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-full w-px bg-zinc-200" />
-
-            <ol className="grid gap-14">
-              {sortedExperiences.map((exp, i) => (
-                <TimelineItem key={exp.company + exp.period} exp={exp} side={i % 2 === 0 ? "left" : "right"} />
-              ))}
-            </ol>
-          </div>
-        </Card>
       </section>
 
       <footer className="mx-auto max-w-5xl px-6 py-10 text-xs text-zinc-500">

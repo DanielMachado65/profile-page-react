@@ -15,26 +15,26 @@ export function TimelineItem({ exp, side }: { exp: Experience; side: "left" | "r
     const [open, setOpen] = useState(false);
     const isLeft = side === "left";
 
-    const dotRing = isLeft ? "ring-blue-200" : "ring-emerald-200";
+    const dotRing = isLeft ? "ring-indigo-200" : "ring-indigo-300";
 
     return (
         <li className="relative">
-            <span className={`absolute left-1/2 top-3 -translate-x-1/2 h-3 w-3 rounded-full bg-zinc-600 ring-4 ${dotRing}`} />
+            <span className={`absolute left-1/2 top-3 -translate-x-1/2 h-3 w-3 rounded-full bg-indigo-500 ring-4 ${dotRing}`} />
 
             <div className="grid md:grid-cols-2 items-start gap-10">
                 {/* Lado esquerdo */}
                 <div className={isLeft ? "md:pr-10 md:text-right" : "md:pr-10 md:text-right md:order-1 md:opacity-0 md:select-none"}>
                     {isLeft && (
                         <div className="flex items-center justify-end gap-4">
-                            <div className={`relative inline-block max-w-xl rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:shadow-md`}>
-                                <div className={`absolute inset-x-0 top-0 h-1 rounded-t-xl ${isLeft ? "bg-blue-200" : "bg-emerald-200"}`} />
+                            <div className={`relative inline-block max-w-xl rounded-xl border border-indigo-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md`}>
+                                <div className={`absolute inset-x-0 top-0 h-1 rounded-t-xl ${isLeft ? "bg-indigo-200" : "bg-indigo-300"}`} />
 
                                 <div className="flex items-start justify-between md:justify-start md:gap-4">
                                     <div>
                                         <h3 className="text-lg font-extrabold tracking-tight">{exp.role}</h3>
                                         <p className="mt-0.5 text-sm text-zinc-500">{exp.company} • {exp.location}</p>
                                     </div>
-                                    <span className="flex items-center gap-1 text-xs text-zinc-500 md:hidden">
+                                    <span className="flex items-center gap-1 text-xs text-indigo-600 md:hidden">
                                         <Calendar className="h-4 w-4" /> {exp.period}
                                     </span>
                                 </div>
@@ -52,7 +52,7 @@ export function TimelineItem({ exp, side }: { exp: Experience; side: "left" | "r
 
                                 <Details open={open} bullets={exp.bullets} stack={exp.stack} align="right" />
                             </div>
-                            <span className="hidden md:flex items-center gap-2 text-xs text-zinc-500 whitespace-nowrap">
+                            <span className="hidden md:flex items-center gap-2 text-xs text-indigo-600 whitespace-nowrap">
                                 <Calendar className="h-4 w-4" /> {exp.period}
                             </span>
                         </div>
@@ -63,18 +63,18 @@ export function TimelineItem({ exp, side }: { exp: Experience; side: "left" | "r
                 <div className={isLeft ? "md:pl-10" : "md:pl-10 md:order-2"}>
                     {!isLeft && (
                         <div className="flex items-center gap-4">
-                            <span className="hidden md:flex items-center gap-2 text-xs text-zinc-500 whitespace-nowrap">
+                            <span className="hidden md:flex items-center gap-2 text-xs text-indigo-600 whitespace-nowrap">
                                 <Calendar className="h-4 w-4" /> {exp.period}
                             </span>
-                            <div className={`relative max-w-xl rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:shadow-md`}>
-                                <div className={`absolute inset-x-0 top-0 h-1 rounded-t-xl ${isLeft ? "bg-blue-200" : "bg-emerald-200"}`} />
+                            <div className={`relative max-w-xl rounded-xl border border-indigo-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md`}>
+                                <div className={`absolute inset-x-0 top-0 h-1 rounded-t-xl ${isLeft ? "bg-indigo-200" : "bg-indigo-300"}`} />
 
                                 <div className="flex items-start justify-between md:justify-start md:gap-4">
                                     <div>
                                         <h3 className="text-lg font-extrabold tracking-tight">{exp.role}</h3>
                                         <p className="mt-0.5 text-sm text-zinc-500">{exp.company} • {exp.location}</p>
                                     </div>
-                                    <span className="flex items-center gap-1 text-xs text-zinc-500 md:hidden">
+                                    <span className="flex items-center gap-1 text-xs text-indigo-600 md:hidden">
                                         <Calendar className="h-4 w-4" /> {exp.period}
                                     </span>
                                 </div>
@@ -97,13 +97,13 @@ export function TimelineItem({ exp, side }: { exp: Experience; side: "left" | "r
 
                     {/* Mobile (stacked) */}
                     <div className="md:hidden">
-                        <div className={`mt-1 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm`}>
+                        <div className={`mt-1 rounded-xl border border-indigo-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md`}>
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="text-lg font-extrabold tracking-tight">{exp.role}</h3>
                                     <p className="mt-0.5 text-sm text-zinc-500">{exp.company} • {exp.location}</p>
                                 </div>
-                                <span className="flex items-center gap-1 text-xs text-zinc-500">
+                                <span className="flex items-center gap-1 text-xs text-indigo-600">
                                     <Calendar className="h-4 w-4" /> {exp.period}
                                 </span>
                             </div>

@@ -1,6 +1,9 @@
+import { Phone, Mail, Github } from "lucide-react";
+
 export const profile = {
   name: "Daniel Machado Pintos",
   title: "Software Engineer",
+  photo: "https://github.com/danielmachado65.png",
   contacts: [
     {
       label: "Telefone",
@@ -14,8 +17,8 @@ export const profile = {
     },
     {
       label: "GitHub",
-      value: "github.com/danielmachado",
-      href: "https://github.com/danielmachado",
+      value: "github.com/danielmachado65",
+      href: "https://github.com/danielmachado65",
     },
   ],
   summary:
@@ -38,6 +41,16 @@ export const profile = {
     { name: "Português", level: "Nativo" },
     { name: "Inglês", level: "Avançado" },
     { name: "Espanhol", level: "Básico" },
+  ],
+  techStacks: [
+    {
+      area: "Back-end",
+      items: ["Ruby", "Elixir", "Python", "Go", "JavaScript (Node.js / NestJS)"],
+    },
+    {
+      area: "Front-end",
+      items: ["React", "Vue.js"],
+    },
   ],
   experiences: [
     {
@@ -66,4 +79,74 @@ export const profile = {
         "Ruby, Elixir, Java, microserviços, integrações, otimização de pipelines.",
     },
   ],
-};
+} as const;
+
+export const contactMeta = {
+  Telefone: {
+    icon: Phone,
+    card: "border-indigo-100 hover:border-indigo-200 hover:ring-2 hover:ring-indigo-100/70",
+    iconWrap:
+      "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700",
+  },
+  "E-mail": {
+    icon: Mail,
+    card: "border-indigo-100 hover:border-indigo-200 hover:ring-2 hover:ring-indigo-100/70",
+    iconWrap:
+      "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700",
+  },
+  GitHub: {
+    icon: Github,
+    card: "border-indigo-100 hover:border-indigo-200 hover:ring-2 hover:ring-indigo-100/70",
+    iconWrap:
+      "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700",
+  },
+  default: {
+    icon: Mail,
+    card: "border-indigo-100 hover:border-indigo-200 hover:ring-2 hover:ring-indigo-100/70",
+    iconWrap:
+      "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700",
+  },
+} as const;
+
+export const languageMeta = {
+  Nativo: {
+    percent: 100,
+    bar: "from-indigo-500 via-indigo-600 to-indigo-700",
+    track: "bg-indigo-100",
+    iconWrap: "bg-indigo-50 text-indigo-600",
+    badge: "bg-indigo-100 text-indigo-700",
+    caption: "Fluência nativa",
+  },
+  Avançado: {
+    percent: 85,
+    bar: "from-indigo-400 via-indigo-500 to-indigo-600",
+    track: "bg-indigo-100/80",
+    iconWrap: "bg-indigo-50 text-indigo-600",
+    badge: "bg-indigo-50 text-indigo-600",
+    caption: "Comunica com alta proficiência",
+  },
+  Intermediário: {
+    percent: 65,
+    bar: "from-indigo-300 via-indigo-400 to-indigo-500",
+    track: "bg-indigo-100/70",
+    iconWrap: "bg-indigo-50 text-indigo-600",
+    badge: "bg-indigo-50 text-indigo-600",
+    caption: "Boa compreensão com ajustes pontuais",
+  },
+  Básico: {
+    percent: 40,
+    bar: "from-indigo-200 via-indigo-300 to-indigo-400",
+    track: "bg-indigo-100/60",
+    iconWrap: "bg-indigo-50 text-indigo-600",
+    badge: "bg-indigo-50 text-indigo-600",
+    caption: "Conhecimentos fundamentais",
+  },
+  default: {
+    percent: 50,
+    bar: "from-indigo-300 via-indigo-400 to-indigo-500",
+    track: "bg-indigo-100",
+    iconWrap: "bg-indigo-50 text-indigo-600",
+    badge: "bg-indigo-50 text-indigo-600",
+    caption: "",
+  },
+} as const;
