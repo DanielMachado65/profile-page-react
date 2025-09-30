@@ -66,7 +66,7 @@ export default function ResumePage() {
 
   const sortedExperiences = useMemo(() => {
     return [...(profile?.experiences ?? [])].sort((a, b) => extractPeriodRange(b.period).end - extractPeriodRange(a.period).end);
-  }, [profile?.experiences]);
+  }, []);
 
   const profileInitials = useMemo(() => {
     if (!profile.name) return "";
@@ -160,7 +160,7 @@ export default function ResumePage() {
       label: `≈ ${formattedYears} de experiência · Nível ${proficiency}`,
       years: totalYears,
     };
-  }, [profile?.experiences]);
+  }, []);
 
   const revealBase = "transition-all duration-700 ease-out";
   const hiddenDown = "translate-y-6 opacity-0";
