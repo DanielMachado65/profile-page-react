@@ -118,7 +118,7 @@ export function TimelineItem({ exp, side }: { exp: Experience; side: "left" | "r
                 {/* Lado esquerdo */}
                 <div className={isLeft ? "md:pr-12 md:text-right" : "md:pr-12 md:text-right md:order-1 md:opacity-0 md:select-none"}>
                     {isLeft && (
-                        <div className="flex items-start justify-end">
+                        <div className="hidden md:flex items-start justify-end">
                             <div className="w-full max-w-xl">{renderCard("right")}</div>
                         </div>
                     )}
@@ -127,7 +127,7 @@ export function TimelineItem({ exp, side }: { exp: Experience; side: "left" | "r
                 {/* Lado direito */}
                 <div className={isLeft ? "md:pl-12" : "md:pl-12 md:order-2"}>
                     {!isLeft && (
-                        <div className="flex items-start">
+                        <div className="hidden md:flex items-start">
                             <div className="w-full max-w-xl">{renderCard("left")}</div>
                         </div>
                     )}
