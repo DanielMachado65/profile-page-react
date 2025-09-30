@@ -2,23 +2,70 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { parse } from "date-fns";
 import { contactMeta, languageMeta, profile } from "./constants";
 import { TimelineItem } from "./components/TimelineItem";
-import { Languages, GraduationCap, MapPin, Server, MonitorSmartphone, Code2, BriefcaseBusiness, Sparkles } from "lucide-react";
+import { Languages, GraduationCap, MapPin, Server, MonitorSmartphone, Code2, BriefcaseBusiness, Sparkles, Calendar } from "lucide-react";
+
+function useReveal<T extends HTMLElement = HTMLElement>(threshold = 0.2) {
+  const elementRef = useRef<T | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const node = elementRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisible(true);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold }
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [threshold]);
+
+  return { ref: elementRef, visible } as const;
+}
 
 export default function ResumePage() {
   const [lineProgress, setLineProgress] = useState(0);
   const timelineRef = useRef<HTMLDivElement | null>(null);
 
-  const sortedExperiences = useMemo(() => {
-    const parsePeriodEnd = (period?: string) => {
-      if (!period) return 0;
-      const segments = period.split(/[–-]/).map((part) => part.trim()).filter(Boolean);
-      const candidate = segments.at(-1);
-      if (!candidate) return 0;
-      const parsed = parse(candidate, "yyyy", new Date());
+  const extractPeriodRange = (period?: string) => {
+    if (!period) return { start: 0, end: 0 };
+    const segments = period
+      .split(/[–-]/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (segments.length === 0) return { start: 0, end: 0 };
+
+    const parseYear = (value: string) => {
+      const parsed = parse(value, "yyyy", new Date());
       return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
     };
 
-    return [...(profile?.experiences ?? [])].sort((a, b) => parsePeriodEnd(b.period) - parsePeriodEnd(a.period));
+    if (segments.length === 1) {
+      const year = parseYear(segments[0]);
+      return { start: year, end: year };
+    }
+
+    const start = parseYear(segments[0]);
+    const end = parseYear(segments[segments.length - 1]);
+    return { start, end };
+  };
+
+  const sortedExperiences = useMemo(() => {
+    return [...(profile?.experiences ?? [])].sort((a, b) => extractPeriodRange(b.period).end - extractPeriodRange(a.period).end);
   }, [profile?.experiences]);
 
   const profileInitials = useMemo(() => {
@@ -73,9 +120,55 @@ export default function ResumePage() {
     };
   }, [sortedExperiences.length]);
 
+  const summaryReveal = useReveal();
+  const experienceReveal = useReveal(0.15);
+  const educationReveal = useReveal(0.2);
+  const languagesReveal = useReveal(0.2);
+  const stackReveal = useReveal(0.2);
+
+  const currentDateLabel = useMemo(() => {
+    return new Date().toLocaleDateString("pt-BR", {
+      month: "short",
+      year: "numeric",
+    }).replace(/\./g, "").toLocaleUpperCase();
+  }, []);
+
+  const experienceSummary = useMemo(() => {
+    const ranges = (profile?.experiences ?? [])
+      .map((exp) => extractPeriodRange(exp.period))
+      .filter((range) => range.start > 0);
+
+    if (ranges.length === 0) {
+      return { label: "", years: 0 };
+    }
+
+    const earliestStart = Math.min(...ranges.map((r) => r.start));
+    const now = Date.now();
+    const totalYears = (now - earliestStart) / (1000 * 60 * 60 * 24 * 365.25);
+
+    let proficiency = "Júnior";
+    if (totalYears >= 10) {
+      proficiency = "Especialista";
+    } else if (totalYears >= 6) {
+      proficiency = "Sênior";
+    } else if (totalYears >= 3) {
+      proficiency = "Pleno";
+    }
+
+    const formattedYears = totalYears >= 1 ? `${totalYears.toFixed(1)} anos` : `${Math.round(totalYears * 12)} meses`;
+    return {
+      label: `≈ ${formattedYears} de experiência · Nível ${proficiency}`,
+      years: totalYears,
+    };
+  }, [profile?.experiences]);
+
+  const revealBase = "transition-all duration-700 ease-out";
+  const hiddenDown = "translate-y-6 opacity-0";
+  const shown = "translate-y-0 opacity-100";
+
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-800">
-      <header className="mx-auto max-w-5xl px-6 pt-10 pb-6">
+      <header className="mx-auto max-w-6xl px-6 pt-10 pb-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div className="flex items-start gap-5">
             <div className="relative flex h-36 w-36 shrink-0 items-center justify-center overflow-hidden rounded-[28px] border border-white bg-gradient-to-br from-indigo-100 via-white to-indigo-50 shadow-md ring-4 ring-indigo-100/70">
@@ -93,6 +186,9 @@ export default function ResumePage() {
             <div>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{profile.name || "Nome do Usuário"}</h1>
               <p className="text-lg text-zinc-600 mt-1">{profile.title}</p>
+              {experienceSummary.label && (
+                <p className="text-sm text-zinc-500 mt-2">{experienceSummary.label}</p>
+              )}
             </div>
           </div>
           <nav className="flex w-full flex-col gap-3 md:w-auto" aria-label="Informações de contato">
@@ -131,9 +227,12 @@ export default function ResumePage() {
         </div>
       </header>
 
-      <section className="mx-auto max-w-5xl px-6 grid gap-6">
+      <section className="mx-auto max-w-6xl px-6 grid gap-6">
         {/* Summary */}
-        <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <section
+          ref={summaryReveal.ref}
+          className={`rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm ${revealBase} ${summaryReveal.visible ? shown : hiddenDown}`}
+        >
           <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
               <Sparkles className="h-5 w-5" />
@@ -148,7 +247,10 @@ export default function ResumePage() {
           </p>
         </section>
 
-        <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
+        <section
+          ref={experienceReveal.ref}
+          className={`rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm ${revealBase} ${experienceReveal.visible ? shown : hiddenDown}`}
+        >
           <header className="flex items-center gap-3 pb-6 border-b border-zinc-100">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
               <BriefcaseBusiness className="h-6 w-6" />
@@ -164,6 +266,9 @@ export default function ResumePage() {
               className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 w-[3px] rounded-full bg-gradient-to-b from-indigo-500 via-indigo-400 to-indigo-600 transition-all duration-500 ease-out"
               style={{ height: `${lineProgress}%` }}
             />
+            <span className="pointer-events-none absolute left-1/2 -top-3 -translate-x-1/2 -translate-y-full inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-600">
+              <Calendar className="h-4 w-4" /> {currentDateLabel}
+            </span>
             <ol className="grid gap-14">
               {sortedExperiences.map((exp, i) => (
                 <TimelineItem key={exp.company + exp.period} exp={exp} side={i % 2 === 0 ? "left" : "right"} />
@@ -173,7 +278,10 @@ export default function ResumePage() {
         </section>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <section
+            ref={educationReveal.ref}
+            className={`rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm ${revealBase} ${educationReveal.visible ? shown : hiddenDown}`}
+          >
             <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
                 <GraduationCap className="h-5 w-5" />
@@ -207,7 +315,10 @@ export default function ResumePage() {
             </ul>
           </section>
 
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <section
+            ref={languagesReveal.ref}
+            className={`rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm ${revealBase} ${languagesReveal.visible ? shown : hiddenDown}`}
+          >
             <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
                 <Languages className="h-5 w-5" />
@@ -252,7 +363,10 @@ export default function ResumePage() {
             </ul>
           </section>
 
-          <section className="md:col-span-2 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <section
+            ref={stackReveal.ref}
+            className={`md:col-span-2 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm ${revealBase} ${stackReveal.visible ? shown : hiddenDown}`}
+          >
             <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
                 <Code2 className="h-5 w-5" />
