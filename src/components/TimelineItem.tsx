@@ -7,7 +7,7 @@ export type Experience = {
     company: string;
     location: string;
     period: string; // e.g., "2023–2025"
-    bullets: string[];
+    bullets: ReadonlyArray<string>;
     stack?: string;
 };
 

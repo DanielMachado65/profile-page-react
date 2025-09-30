@@ -51,6 +51,10 @@ export const profile = {
       area: "Front-end",
       items: ["React", "Vue.js"],
     },
+    {
+      area: "DevOps / Cloud",
+      items: ["AWS", "Google Cloud", "Terraform", "Pulumi"],
+    },
   ],
   experiences: [
     {

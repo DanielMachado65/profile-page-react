@@ -1,4 +1,4 @@
-export function Details({ open, bullets, stack, align = "left" }: { open: boolean; bullets: string[]; stack?: string; align?: "left" | "right" }) {
+export function Details({ open, bullets, stack, align = "left" }: { open: boolean; bullets: ReadonlyArray<string>; stack?: string; align?: "left" | "right" }) {
     return (
         <div
             className={`overflow-hidden transition-[max-height,opacity,transform] duration-300 ${open ? "max-h-[600px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-1"}`}

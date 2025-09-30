@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { parse } from "date-fns";
-import { contactMeta, languageMeta, profile } from "./global";
+import { contactMeta, languageMeta, profile } from "./constants";
 import { TimelineItem } from "./components/TimelineItem";
-import { Languages, GraduationCap, MapPin, Server, MonitorSmartphone, Code2, BriefcaseBusiness } from "lucide-react";
+import { Languages, GraduationCap, MapPin, Server, MonitorSmartphone, Code2, BriefcaseBusiness, Sparkles } from "lucide-react";
 
 export default function ResumePage() {
   const sortedExperiences = useMemo(() => {
@@ -21,11 +21,12 @@ export default function ResumePage() {
       .map((part) => part[0]?.toUpperCase() ?? "")
       .join("")
       .slice(0, 2);
-  }, [profile.name]);
+  }, []);
 
   const stackIconMap = {
     "Back-end": Server,
     "Front-end": MonitorSmartphone,
+    "DevOps / Cloud": Server,
   } as const;
 
   return (
@@ -88,12 +89,20 @@ export default function ResumePage() {
 
       <section className="mx-auto max-w-5xl px-6 grid gap-6">
         {/* Summary */}
-        <article className="relative overflow-hidden rounded-2xl p-6 shadow-sm">
-          <span className="pointer-events-none absolute inset-y-6 left-4 w-1 rounded-full bg-indigo-300/70" />
-          <p className="pl-8 text-sm leading-relaxed text-zinc-700 md:text-base">
+        <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold text-zinc-900">Resumo</h2>
+              <p className="text-xs text-zinc-500">Perfil profissional e áreas de atuação</p>
+            </div>
+          </header>
+          <p className="mt-5 text-sm leading-relaxed text-zinc-700 md:text-base">
             {profile.summary}
           </p>
-        </article>
+        </section>
 
         <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
           <header className="flex items-center gap-3 pb-6 border-b border-zinc-100">
