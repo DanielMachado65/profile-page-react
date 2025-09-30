@@ -120,8 +120,6 @@ export default function ResumePage() {
     };
   }, [sortedExperiences.length]);
 
-  const summaryReveal = useReveal();
-  const experienceReveal = useReveal(0.15);
   const educationReveal = useReveal(0.2);
   const languagesReveal = useReveal(0.2);
   const stackReveal = useReveal(0.2);
@@ -230,8 +228,7 @@ export default function ResumePage() {
       <section className="mx-auto max-w-6xl px-6 grid gap-6">
         {/* Summary */}
         <section
-          ref={summaryReveal.ref}
-          className={`rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm ${revealBase} ${summaryReveal.visible ? shown : hiddenDown}`}
+          className={`rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm ${revealBase} `}
         >
           <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
@@ -248,8 +245,7 @@ export default function ResumePage() {
         </section>
 
         <section
-          ref={experienceReveal.ref}
-          className={`rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm ${revealBase} ${experienceReveal.visible ? shown : hiddenDown}`}
+          className={`rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm ${revealBase} `}
         >
           <header className="flex items-center gap-3 pb-6 border-b border-zinc-100">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
