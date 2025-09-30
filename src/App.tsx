@@ -6,12 +6,17 @@ import { Languages, GraduationCap, MapPin, Server, MonitorSmartphone, Code2, Bri
 
 export default function ResumePage() {
   const sortedExperiences = useMemo(() => {
-    return [...(profile?.experiences ?? [])].sort((a, b) => {
-      const endA = parse(a.period.split("–")[1].trim(), "yyyy", new Date());
-      const endB = parse(b.period.split("–")[1].trim(), "yyyy", new Date());
-      return endB.getTime() - endA.getTime();
-    });
-  }, []);
+    const parsePeriodEnd = (period?: string) => {
+      if (!period) return 0;
+      const segments = period.split(/[–-]/).map((part) => part.trim()).filter(Boolean);
+      const candidate = segments.at(-1);
+      if (!candidate) return 0;
+      const parsed = parse(candidate, "yyyy", new Date());
+      return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+    };
+
+    return [...(profile?.experiences ?? [])].sort((a, b) => parsePeriodEnd(b.period) - parsePeriodEnd(a.period));
+  }, [profile?.experiences]);
 
   const profileInitials = useMemo(() => {
     if (!profile.name) return "";

@@ -45,7 +45,26 @@ export const profile = {
   techStacks: [
     {
       area: "Back-end",
-      items: ["Ruby", "Elixir", "Python", "Go", "JavaScript (Node.js / NestJS)"],
+      items: [
+        "Ruby",
+        "Elixir",
+        "Python",
+        "Go",
+        "JavaScript (Node.js / NestJS)",
+        "typeScript",
+        "GraphQL",
+        "gRPC",
+        "REST",
+        "PostgreSQL",
+        "MongoDB",
+        "MySQL",
+        "Redis",
+        "RabbitMQ",
+        "Kafka",
+        "Docker",
+        "Kubernetes",
+        "Microservices",
+      ],
     },
     {
       area: "Front-end",
@@ -71,16 +90,62 @@ export const profile = {
         "TypeScript (NestJS), React, Node, Go, Elixir, Flutter, RabbitMQ, AWS Lambda & Lambda@Edge, microservices, MongoDB, PostgreSQL, EventBridge; Infra: AWS (API Gateway, SQS, SES, ECS, ECR, EC2…), Pulumi, Docker.",
     },
     {
-      role: "Senior Full‑Stack Developer + DevOps",
+      role: "Senior Full-Stack Developer + DevOps",
       company: "Chiligum → VidMob",
       location: "São Paulo (BR) / Nova York (EUA)",
       period: "2021–2023",
       bullets: [
-        "Desenvolvimento e otimização de aplicações e integrações focadas em arquitetura e microserviços.",
-        "Projetos em Ruby (automação criativa), Elixir (escalabilidade) e módulos em Java para pipelines de mídia.",
+        "Construção e otimização de aplicações e integrações com foco em arquitetura e microserviços.",
+        "Projetos em Ruby (automação criativa), Elixir (escalabilidade), módulos em Java para pipelines de mídia e front-ends em React com design system próprio.",
+        "Acompanhamento de aquisição internacional e trabalho presencial em Nova York.",
       ],
       stack:
-        "Ruby, Elixir, Java, microserviços, integrações, otimização de pipelines.",
+        "Ruby (Rails, Sinatra DDL), TypeScript (Node), Elixir (Phoenix), Angular, React, Sidekiq, Docker, Java (Maven), microservices, Vector, MongoDB, PostgreSQL, GraphQL; Infra: AWS (CloudFormation, Lambda, EC2, API Gateway…), Terraform.",
+    },
+    {
+      role: "Mid-Level Full-Stack Developer",
+      company: "Pontomais",
+      location: "Curitiba (Brasil)",
+      period: "2020–2021",
+      bullets: [
+        "Manutenção e evolução de sistemas de RH e controle de ponto, atuando em Ruby no back-end e React no front-end.",
+        "Melhorias de performance, correção de issues críticas e entregas de features incrementais.",
+        "Uso de Google Cloud para deploy, monitoramento e escalabilidade, garantindo estabilidade do produto.",
+      ],
+      stack: "Ruby, React; Infra: Google Cloud.",
+    },
+    {
+      role: "Mid-Level Full-Stack Developer (Contract)",
+      company: "Checkplant Sistemas",
+      location: "Curitiba (Brasil)",
+      period: "2020-2020",
+      bullets: [
+        "Contrato de curto prazo focado em manutenção e evolução de sistemas para agronomia.",
+        "Atuação em bug fixing, melhorias de features e suporte a serviços de rastreio de eventos geológicos.",
+      ],
+      stack:
+        "Ruby, Elixir, Java (Maven), TypeScript (NestJS), React; Infra: AWS (Terraform, EventBridge).",
+    },
+    {
+      role: "Full-Stack Developer (Junior → Mid-Level)",
+      company: "Social Wave",
+      location: "Curitiba (Brasil)",
+      period: "2018–2020",
+      bullets: [
+        "Manutenção e evolução de aplicação de ticketing para eventos orgânicos.",
+        "Projetos chave: novo fluxo de checkout, migração de site legado para SPA moderna e migração de infraestrutura para AWS.",
+      ],
+      stack: "Ruby (Rails & Padrino), React (MobX), React Native.",
+    },
+    {
+      role: "Full-Stack Developer (Junior)",
+      company: "Grupo ABL",
+      location: "Curitiba (Brasil)",
+      period: "2017-2018",
+      bullets: [
+        "Atuação com IA e blockchain, desenvolvendo soluções de reconhecimento de fala com TensorFlow e DialogFlow.",
+      ],
+      stack: "Java, Python.",
     },
   ],
 } as const;
