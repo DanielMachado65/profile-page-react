@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Calendar, Building2, MapPin } from "lucide-react";
 import { Details } from "./Details";
 
@@ -16,6 +16,32 @@ export function TimelineItem({ exp, side }: { exp: Experience; side: "left" | "r
     const isLeft = side === "left";
 
     const dotRing = isLeft ? "ring-indigo-200" : "ring-indigo-300";
+    const itemRef = useRef<HTMLLIElement | null>(null);
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        if (visible) return;
+        const node = itemRef.current;
+        if (!node || typeof IntersectionObserver === "undefined") return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        setVisible(true);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.25 }
+        );
+
+        observer.observe(node);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [visible]);
 
     const accentBarColor = (align: "left" | "right") => (align === "right" ? "bg-indigo-200" : "bg-indigo-300");
 
@@ -70,11 +96,17 @@ export function TimelineItem({ exp, side }: { exp: Experience; side: "left" | "r
         </div>
     );
 
+    const entryAnimation = visible
+        ? "translate-x-0 opacity-100"
+        : isLeft
+        ? "-translate-x-6 opacity-0"
+        : "translate-x-6 opacity-0";
+
     return (
-        <li className="relative">
+        <li ref={itemRef} className="relative">
             <span className={`absolute left-1/2 top-3 -translate-x-1/2 h-3 w-3 rounded-full bg-indigo-500 ring-4 ${dotRing}`} />
 
-            <div className="grid items-start gap-10 md:grid-cols-2">
+            <div className={`grid items-start gap-10 md:grid-cols-2 transition-[transform,opacity] duration-700 ease-out ${entryAnimation}`}>
                 {/* Lado esquerdo */}
                 <div className={isLeft ? "md:pr-10 md:text-right" : "md:pr-10 md:text-right md:order-1 md:opacity-0 md:select-none"}>
                     {isLeft && (

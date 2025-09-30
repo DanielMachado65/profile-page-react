@@ -25,7 +25,7 @@ export const profile = {
     "Programador e empreendedor com experiência em IA (reconhecimento de fala), sistemas de recomendação, criptografia/cripto e engenharia de software full‑stack. Forte atuação com React, Vue.js, Ruby, Elixir, TypeScript e Go, além de arquitetura de microserviços e DevOps (AWS, Docker, Pulumi).",
   education: [
     {
-      course: "Pós‑graduação em Agile Software Development",
+      course: "Pós-graduação em Agile Software Development",
       org: "UFPR — Universidade Federal do Paraná",
       location: "Curitiba, Brasil",
       period: "2024–2025",
@@ -68,11 +68,28 @@ export const profile = {
     },
     {
       area: "Front-end",
-      items: ["React", "Vue.js"],
+      items: [
+        "React",
+        "Vue.js",
+        "Angular",
+        "HTML5",
+        "CSS3",
+        "Tailwind CSS",
+        "Sass",
+        "Bootstrap",
+      ],
     },
     {
       area: "DevOps / Cloud",
-      items: ["AWS", "Google Cloud", "Terraform", "Pulumi"],
+      items: [
+        "AWS",
+        "Google Cloud",
+        "Terraform",
+        "Pulumi",
+        "CI/CD",
+        "Linux",
+        "Nginx",
+      ],
     },
   ],
   experiences: [

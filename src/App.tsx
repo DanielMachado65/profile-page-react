@@ -1,10 +1,13 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { parse } from "date-fns";
 import { contactMeta, languageMeta, profile } from "./constants";
 import { TimelineItem } from "./components/TimelineItem";
 import { Languages, GraduationCap, MapPin, Server, MonitorSmartphone, Code2, BriefcaseBusiness, Sparkles } from "lucide-react";
 
 export default function ResumePage() {
+  const [lineProgress, setLineProgress] = useState(0);
+  const timelineRef = useRef<HTMLDivElement | null>(null);
+
   const sortedExperiences = useMemo(() => {
     const parsePeriodEnd = (period?: string) => {
       if (!period) return 0;
@@ -33,6 +36,42 @@ export default function ResumePage() {
     "Front-end": MonitorSmartphone,
     "DevOps / Cloud": Server,
   } as const;
+
+  useEffect(() => {
+    const node = timelineRef.current;
+    if (!node) return;
+
+    const clamp = (value: number, min = 0, max = 100) => Math.min(Math.max(value, min), max);
+
+    const updateProgress = () => {
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || 1;
+      const totalHeight = rect.height || 1;
+
+      if (rect.bottom <= 0) {
+        setLineProgress(0);
+        return;
+      }
+
+      if (rect.top >= viewportHeight) {
+        setLineProgress(0);
+        return;
+      }
+
+      const distanceIntoView = viewportHeight - rect.top;
+      const progress = clamp((distanceIntoView / (viewportHeight + totalHeight)) * 100);
+      setLineProgress(progress);
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+
+    return () => {
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+    };
+  }, [sortedExperiences.length]);
 
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-800">
@@ -119,8 +158,12 @@ export default function ResumePage() {
               <p className="text-sm text-zinc-500">Projetos recentes, impacto e tecnologias chave</p>
             </div>
           </header>
-          <div className="relative mt-6">
-            <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-full w-px bg-indigo-200" />
+          <div ref={timelineRef} className="relative mt-6">
+            <span className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-full w-px bg-zinc-200" />
+            <span
+              className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 w-[3px] rounded-full bg-gradient-to-b from-indigo-500 via-indigo-400 to-indigo-600 transition-all duration-500 ease-out"
+              style={{ height: `${lineProgress}%` }}
+            />
             <ol className="grid gap-14">
               {sortedExperiences.map((exp, i) => (
                 <TimelineItem key={exp.company + exp.period} exp={exp} side={i % 2 === 0 ? "left" : "right"} />
