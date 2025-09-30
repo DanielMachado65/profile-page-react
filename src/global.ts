@@ -2,13 +2,21 @@ export const profile = {
   name: "Daniel Machado Pintos",
   title: "Software Engineer",
   contacts: [
-    { label: "+55 41 99887-8877", href: "tel:+5541998878877" },
     {
-      label: "danielmachadopintos@gmail.com",
+      label: "Telefone",
+      value: "+55 41 99887-8877",
+      href: "tel:+5541998878877",
+    },
+    {
+      label: "E-mail",
+      value: "danielmachadopintos@gmail.com",
       href: "mailto:danielmachadopintos@gmail.com",
     },
-    { label: "GitLab", href: "https://gitlab.com/danielmachado" },
-    { label: "Site/Perfil", href: "https://daniel-machado-pintos" },
+    {
+      label: "GitHub",
+      value: "github.com/danielmachado",
+      href: "https://github.com/danielmachado",
+    },
   ],
   summary:
     "Programador e empreendedor com experiência em IA (reconhecimento de fala), sistemas de recomendação, criptografia/cripto e engenharia de software full‑stack. Forte atuação com React, Vue.js, Ruby, Elixir, TypeScript e Go, além de arquitetura de microserviços e DevOps (AWS, Docker, Pulumi).",
