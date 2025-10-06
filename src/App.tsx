@@ -207,7 +207,7 @@ export default function ResumePage() {
   const lineProgress = useRafScrollProgress(timelineRef as React.RefObject<HTMLElement>);
 
   // Derivations
-  const experiences = profile?.experiences ?? [];
+  const experiences = useMemo(() => profile?.experiences ?? [], []);
 
   const sortedExperiences = useMemo(() => {
     // Copy, compute once; comparator uses fast period parsing

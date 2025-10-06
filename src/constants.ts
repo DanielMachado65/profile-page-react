@@ -1,4 +1,4 @@
-import { Phone, Mail, Github } from "lucide-react";
+import { Phone, Mail, Github, Linkedin } from "lucide-react";
 
 export const profile = {
   name: "Daniel Machado Pintos",
@@ -19,6 +19,11 @@ export const profile = {
       label: "GitHub",
       value: "github.com/danielmachado65",
       href: "https://github.com/danielmachado65",
+    },
+    {
+      label: "LinkedIn",
+      value: "linkedin.com/in/danielmachado65",
+      href: "https://www.linkedin.com/in/danielmachado65",
     },
   ],
   summary:
@@ -182,6 +187,12 @@ export const contactMeta = {
   },
   GitHub: {
     icon: Github,
+    card: "border-indigo-100 hover:border-indigo-200 hover:ring-2 hover:ring-indigo-100/70",
+    iconWrap:
+      "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700",
+  },
+  LinkedIn: {
+    icon: Linkedin,
     card: "border-indigo-100 hover:border-indigo-200 hover:ring-2 hover:ring-indigo-100/70",
     iconWrap:
       "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700",
