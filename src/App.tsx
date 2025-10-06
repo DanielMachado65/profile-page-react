@@ -348,7 +348,7 @@ export default function ResumePage() {
             <span className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-full w-px bg-zinc-200" />
             {/* Use transform for cheaper layout updates */}
             <span
-              className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 w-[3px] origin-top rounded-full bg-gradient-to-b from-indigo-500 via-indigo-400 to-indigo-600 transition-transform duration-300 ease-out"
+              className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 w-[3px] h-full origin-top rounded-full bg-gradient-to-b from-indigo-500 via-indigo-400 to-indigo-600 transform-gpu transition-transform duration-300 ease-out will-change-transform"
               style={{ transform: `scaleY(${progressToScale(lineProgress)})` }}
             />
             <span className="pointer-events-none absolute left-1/2 -top-3 -translate-x-1/2 -translate-y-full inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-600">
