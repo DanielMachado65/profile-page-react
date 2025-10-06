@@ -1,10 +1,59 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { parse } from "date-fns";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { contactMeta, languageMeta, profile } from "./constants";
-import { TimelineItem } from "./components/TimelineItem";
-import { Languages, GraduationCap, MapPin, Server, MonitorSmartphone, Code2, BriefcaseBusiness, Sparkles, Calendar } from "lucide-react";
+import { TimelineItem, type Experience } from "./components/TimelineItem";
+import {
+  Languages,
+  GraduationCap,
+  MapPin,
+  Server,
+  MonitorSmartphone,
+  Code2,
+  BriefcaseBusiness,
+  Sparkles,
+  Calendar,
+} from "lucide-react";
 
-function useReveal<T extends HTMLElement = HTMLElement>(threshold = 0.2) {
+const YEAR_RE = /\b(19|20)\d{2}\b/;
+const MS_YEAR = 1000 * 60 * 60 * 24 * 365.25;
+
+function parseYearFast(value: string): number {
+  const match = String(value).match(YEAR_RE);
+  if (!match) return 0;
+  const year = Number(match[0]);
+  if (!Number.isFinite(year)) return 0;
+  // Construct a UTC date to avoid TZ drift
+  return Date.UTC(year, 0, 1);
+}
+
+export type PeriodRange = { start: number; end: number };
+// eslint-disable-next-line react-refresh/only-export-components
+export function extractPeriodRange(period?: string): PeriodRange {
+  if (!period) return { start: 0, end: 0 };
+  const segments = period
+    .split(/[–-]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (segments.length === 0) return { start: 0, end: 0 };
+
+  if (segments.length === 1) {
+    const year = parseYearFast(segments[0]);
+    return { start: year, end: year };
+  }
+
+  const start = parseYearFast(segments[0]);
+  const end = parseYearFast(segments[segments.length - 1]);
+  return { start, end };
+}
+
+// Static map of stack icons
+const stackIconMap = {
+  "Back-end": Server,
+  "Front-end": MonitorSmartphone,
+  "DevOps / Cloud": Server,
+} as const;
+
+// ---------- Hooks ----------
+function useReveal<T extends HTMLElement = HTMLElement>(threshold = 0.2, rootMargin = "0px") {
   const elementRef = useRef<T | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -17,60 +66,157 @@ function useReveal<T extends HTMLElement = HTMLElement>(threshold = 0.2) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
+        for (const entry of entries) {
           if (entry.isIntersecting) {
             setVisible(true);
             observer.unobserve(entry.target);
           }
-        });
+        }
       },
-      { threshold }
+      { threshold, rootMargin }
     );
 
     observer.observe(node);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [threshold]);
+    return () => observer.disconnect();
+  }, [threshold, rootMargin]);
 
   return { ref: elementRef, visible } as const;
 }
 
-export default function ResumePage() {
-  const [lineProgress, setLineProgress] = useState(0);
-  const timelineRef = useRef<HTMLDivElement | null>(null);
+// rAF-based scroll progress for smoother, throttled updates
+function useRafScrollProgress(targetRef: React.RefObject<HTMLElement>) {
+  const [progress, setProgress] = useState(0);
+  const tickingRef = useRef(false);
 
-  const extractPeriodRange = (period?: string) => {
-    if (!period) return { start: 0, end: 0 };
-    const segments = period
-      .split(/[–-]/)
-      .map((part) => part.trim())
-      .filter(Boolean);
-    if (segments.length === 0) return { start: 0, end: 0 };
+  const compute = useCallback(() => {
+    const node = targetRef.current;
+    if (!node) return 0;
 
-    const parseYear = (value: string) => {
-      const parsed = parse(value, "yyyy", new Date());
-      return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+    const rect = node.getBoundingClientRect();
+    const viewport = window.innerHeight || 1;
+    const total = rect.height || 1;
+
+    if (rect.bottom <= 0) return 0;
+    if (rect.top >= viewport) return 0;
+
+    const distanceIntoView = viewport - rect.top;
+    const raw = (distanceIntoView / (viewport + total)) * 100;
+    return Math.max(0, Math.min(100, raw));
+  }, [targetRef]);
+
+  const onScrollOrResize = useCallback(() => {
+    if (tickingRef.current) return;
+    tickingRef.current = true;
+    requestAnimationFrame(() => {
+      tickingRef.current = false;
+      setProgress(compute());
+    });
+  }, [compute]);
+
+  useEffect(() => {
+    setProgress(compute());
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize);
+    return () => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
     };
+  }, [onScrollOrResize, compute]);
 
-    if (segments.length === 1) {
-      const year = parseYear(segments[0]);
-      return { start: year, end: year };
-    }
+  return progress;
+}
 
-    const start = parseYear(segments[0]);
-    const end = parseYear(segments[segments.length - 1]);
-    return { start, end };
-  };
+// ---------- Memoized leaf components ----------
+const EducationItem = React.memo(function EducationItem({
+  e,
+}: {
+  e: { course: string; period: string; org: string; location: string };
+}) {
+  return (
+    <li
+      className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow"
+    >
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-zinc-900 md:text-base">{e.course}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{e.period}</p>
+        <p className="text-sm text-zinc-600">{e.org}</p>
+      </div>
+      <div className="mt-4 flex justify-end">
+        <span className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-[11px] font-medium text-zinc-600">
+          <MapPin className="h-4 w-4" /> {e.location}
+        </span>
+      </div>
+    </li>
+  );
+});
+
+const LanguageItem = React.memo(function LanguageItem({
+  l,
+}: {
+  l: { name: string; level: string };
+}) {
+  const styles = languageMeta[l.level as keyof typeof languageMeta] ?? languageMeta.default;
+  return (
+    <li className="rounded-2xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${styles.iconWrap}`}>
+            <Languages className="h-5 w-5" />
+          </span>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-zinc-800 md:text-base">{l.name}</span>
+            {styles.caption && <span className="text-xs text-zinc-500">{styles.caption}</span>}
+          </div>
+        </div>
+        <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${styles.badge}`}>
+          {l.level}
+        </span>
+      </div>
+      <div className={`mt-4 h-2 w-full overflow-hidden rounded-full ${styles.track}`}>
+        <div className={`h-full rounded-full bg-gradient-to-r ${styles.bar}`} style={{ width: `${styles.percent}%` }} />
+      </div>
+    </li>
+  );
+});
+
+const StackItem = React.memo(function StackItem({
+  stack,
+}: {
+  stack: { area: string; items: readonly string[] };
+}) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Icon = (stackIconMap as any)[stack.area] ?? Code2;
+  return (
+    <li className="rounded-2xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow">
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-indigo-600">
+          <Icon className="h-5 w-5" />
+        </span>
+        <div className="space-y-1">
+          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{stack.area}</span>
+          <p className="text-sm leading-snug text-zinc-700">{stack.items.join(" • ")}</p>
+        </div>
+      </div>
+    </li>
+  );
+});
+
+// ---------- Main Component ----------
+export default function ResumePage() {
+  const timelineRef = useRef<HTMLDivElement | null>(null);
+  const lineProgress = useRafScrollProgress(timelineRef as React.RefObject<HTMLElement>);
+
+  // Derivations
+  const experiences = profile?.experiences ?? [];
 
   const sortedExperiences = useMemo(() => {
-    return [...(profile?.experiences ?? [])].sort((a, b) => extractPeriodRange(b.period).end - extractPeriodRange(a.period).end);
-  }, []);
+    // Copy, compute once; comparator uses fast period parsing
+    return [...experiences].sort((a, b) => extractPeriodRange(b.period).end - extractPeriodRange(a.period).end);
+  }, [experiences]);
 
   const profileInitials = useMemo(() => {
-    if (!profile.name) return "";
-    return profile.name
+    const name = profile?.name || "";
+    return name
       .split(/\s+/)
       .filter(Boolean)
       .map((part) => part[0]?.toUpperCase() ?? "")
@@ -78,87 +224,36 @@ export default function ResumePage() {
       .slice(0, 2);
   }, []);
 
-  const stackIconMap = {
-    "Back-end": Server,
-    "Front-end": MonitorSmartphone,
-    "DevOps / Cloud": Server,
-  } as const;
-
-  useEffect(() => {
-    const node = timelineRef.current;
-    if (!node) return;
-
-    const clamp = (value: number, min = 0, max = 100) => Math.min(Math.max(value, min), max);
-
-    const updateProgress = () => {
-      const rect = node.getBoundingClientRect();
-      const viewportHeight = window.innerHeight || 1;
-      const totalHeight = rect.height || 1;
-
-      if (rect.bottom <= 0) {
-        setLineProgress(0);
-        return;
-      }
-
-      if (rect.top >= viewportHeight) {
-        setLineProgress(0);
-        return;
-      }
-
-      const distanceIntoView = viewportHeight - rect.top;
-      const progress = clamp((distanceIntoView / (viewportHeight + totalHeight)) * 100);
-      setLineProgress(progress);
-    };
-
-    updateProgress();
-    window.addEventListener("scroll", updateProgress, { passive: true });
-    window.addEventListener("resize", updateProgress);
-
-    return () => {
-      window.removeEventListener("scroll", updateProgress);
-      window.removeEventListener("resize", updateProgress);
-    };
-  }, [sortedExperiences.length]);
-
-  const educationReveal = useReveal(0.2);
-  const languagesReveal = useReveal(0.2);
-  const stackReveal = useReveal(0.2);
-
   const currentDateLabel = useMemo(() => {
-    return new Date().toLocaleDateString("pt-BR", {
-      month: "short",
-      year: "numeric",
-    }).replace(/\./g, "").toLocaleUpperCase();
+    const label = new Date()
+      .toLocaleDateString("pt-BR", { month: "short", year: "numeric" })
+      .replace(/\./g, "");
+    return label.toLocaleUpperCase();
   }, []);
 
   const experienceSummary = useMemo(() => {
-    const ranges = (profile?.experiences ?? [])
-      .map((exp) => extractPeriodRange(exp.period))
-      .filter((range) => range.start > 0);
+    const ranges = experiences
+      .map((exp: { period: string }) => extractPeriodRange(exp.period))
+      .filter((r: PeriodRange) => r.start > 0);
 
-    if (ranges.length === 0) {
-      return { label: "", years: 0 };
-    }
+    if (ranges.length === 0) return { label: "", years: 0 };
 
     const earliestStart = Math.min(...ranges.map((r) => r.start));
-    const now = Date.now();
-    const totalYears = (now - earliestStart) / (1000 * 60 * 60 * 24 * 365.25);
+    const totalYears = (Date.now() - earliestStart) / MS_YEAR;
 
-    let proficiency = "Júnior";
-    if (totalYears >= 10) {
-      proficiency = "Especialista";
-    } else if (totalYears >= 6) {
-      proficiency = "Sênior";
-    } else if (totalYears >= 3) {
-      proficiency = "Pleno";
-    }
+    let proficiency = "Júnior" as "Júnior" | "Pleno" | "Sênior" | "Especialista";
+    if (totalYears >= 10) proficiency = "Especialista";
+    else if (totalYears >= 6) proficiency = "Sênior";
+    else if (totalYears >= 3) proficiency = "Pleno";
 
     const formattedYears = totalYears >= 1 ? `${totalYears.toFixed(1)} anos` : `${Math.round(totalYears * 12)} meses`;
-    return {
-      label: `≈ ${formattedYears} de experiência · Nível ${proficiency}`,
-      years: totalYears,
-    };
-  }, []);
+    return { label: `≈ ${formattedYears} de experiência · Nível ${proficiency}`, years: totalYears };
+  }, [experiences]);
+
+  // Reveal sections
+  const educationReveal = useReveal(0.2);
+  const languagesReveal = useReveal(0.2);
+  const stackReveal = useReveal(0.2);
 
   const revealBase = "transition-all duration-700 ease-out";
   const hiddenDown = "translate-y-6 opacity-0";
@@ -176,6 +271,7 @@ export default function ResumePage() {
                   alt={`Foto de ${profile.name}`}
                   className="h-full w-full object-cover"
                   loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <span className="text-xl font-semibold text-indigo-700">{profileInitials}</span>
@@ -184,19 +280,24 @@ export default function ResumePage() {
             <div>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{profile.name || "Nome do Usuário"}</h1>
               <p className="text-lg text-zinc-600 mt-1">{profile.title}</p>
-              {experienceSummary.label && (
-                <p className="text-sm text-zinc-500 mt-2">{experienceSummary.label}</p>
-              )}
+              {experienceSummary.label && <p className="text-sm text-zinc-500 mt-2">{experienceSummary.label}</p>}
             </div>
           </div>
-          <nav className="flex w-full flex-col gap-3 md:w-auto" aria-label="Informações de contato">
-            {profile.contacts.map((c) => {
-              const { icon: Icon, card, iconWrap } = contactMeta[c.label as keyof typeof contactMeta] ?? contactMeta.default;
-              const isExternal = c.href.startsWith("http");
 
+          <nav className="flex w-full flex-col gap-3 md:w-auto" aria-label="Informações de contato">
+            {profile.contacts?.map((c: {
+              id?: string;
+              label: string;
+              value: string;
+              href?: string;
+            }) => {
+              const meta = contactMeta[c.label as keyof typeof contactMeta] ?? contactMeta.default;
+              const { icon: Icon, card, iconWrap } = meta;
+              const isExternal = c.href?.startsWith("http");
+              const key = c.id || c.href || c.value || c.label;
               return (
                 <a
-                  key={c.href}
+                  key={key}
                   href={c.href}
                   className={`group relative flex w-full items-center gap-3 rounded-2xl border bg-white/80 px-5 py-4 shadow-sm transition hover:-translate-y-0.5 ${card}`}
                   target={isExternal ? "_blank" : undefined}
@@ -206,17 +307,9 @@ export default function ResumePage() {
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="flex flex-col text-left text-sm">
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                      {c.label}
-                    </span>
-                    <span className="text-base font-semibold text-zinc-800 md:text-lg">
-                      {c.value}
-                    </span>
-                    {isExternal && (
-                      <span className="mt-1 text-xs text-zinc-500 transition group-hover:text-zinc-600">
-                        Abrir em nova aba ↗
-                      </span>
-                    )}
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">{c.label}</span>
+                    <span className="text-base font-semibold text-zinc-800 md:text-lg">{c.value}</span>
+                    {isExternal && <span className="mt-1 text-xs text-zinc-500 transition group-hover:text-zinc-600">Abrir em nova aba ↗</span>}
                   </span>
                 </a>
               );
@@ -227,9 +320,7 @@ export default function ResumePage() {
 
       <section className="mx-auto max-w-6xl px-6 grid gap-6">
         {/* Summary */}
-        <section
-          className={`rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm ${revealBase} `}
-        >
+        <section className={`rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm ${revealBase}`}>
           <header className="flex items-center gap-3 pb-5 border-b border-zinc-100">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
               <Sparkles className="h-5 w-5" />
@@ -239,14 +330,10 @@ export default function ResumePage() {
               <p className="text-xs text-zinc-500">Perfil profissional e áreas de atuação</p>
             </div>
           </header>
-          <p className="mt-5 text-sm leading-relaxed text-zinc-700 md:text-base">
-            {profile.summary}
-          </p>
+          <p className="mt-5 text-sm leading-relaxed text-zinc-700 md:text-base">{profile.summary}</p>
         </section>
 
-        <section
-          className={`rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm ${revealBase} `}
-        >
+        <section className={`rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm ${revealBase}`}>
           <header className="flex items-center gap-3 pb-6 border-b border-zinc-100">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-indigo-600">
               <BriefcaseBusiness className="h-6 w-6" />
@@ -256,18 +343,20 @@ export default function ResumePage() {
               <p className="text-sm text-zinc-500">Projetos recentes, impacto e tecnologias chave</p>
             </div>
           </header>
+
           <div ref={timelineRef} className="relative mt-6">
             <span className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-full w-px bg-zinc-200" />
+            {/* Use transform for cheaper layout updates */}
             <span
-              className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 w-[3px] rounded-full bg-gradient-to-b from-indigo-500 via-indigo-400 to-indigo-600 transition-all duration-500 ease-out"
-              style={{ height: `${lineProgress}%` }}
+              className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 w-[3px] origin-top rounded-full bg-gradient-to-b from-indigo-500 via-indigo-400 to-indigo-600 transition-transform duration-300 ease-out"
+              style={{ transform: `scaleY(${progressToScale(lineProgress)})` }}
             />
             <span className="pointer-events-none absolute left-1/2 -top-3 -translate-x-1/2 -translate-y-full inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-600">
               <Calendar className="h-4 w-4" /> {currentDateLabel}
             </span>
             <ol className="grid gap-14">
-              {sortedExperiences.map((exp, i) => (
-                <TimelineItem key={exp.company + exp.period} exp={exp} side={i % 2 === 0 ? "left" : "right"} />
+              {sortedExperiences.map((exp: Experience, i: number) => (
+                <TimelineItem key={`${exp.company}-${exp.period}-${i}`} exp={exp} side={i % 2 === 0 ? "left" : "right"} />
               ))}
             </ol>
           </div>
@@ -288,25 +377,8 @@ export default function ResumePage() {
               </div>
             </header>
             <ul className="mt-5 flex flex-col gap-4">
-              {profile.education.map((e) => (
-                <li
-                  key={e.course}
-                  className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-zinc-900 md:text-base">{e.course}</p>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                      {e.period}
-                    </p>
-                    <p className="text-sm text-zinc-600">{e.org}</p>
-                  </div>
-
-                  <div className="mt-4 flex justify-end">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-[11px] font-medium text-zinc-600">
-                      <MapPin className="h-4 w-4" /> {e.location}
-                    </span>
-                  </div>
-                </li>
+              {profile.education?.map((e: { course: string; period: string; org: string; location: string }) => (
+                <EducationItem key={`${e.course}-${e.period}`} e={e} />
               ))}
             </ul>
           </section>
@@ -325,37 +397,9 @@ export default function ResumePage() {
               </div>
             </header>
             <ul className="mt-5 flex flex-col gap-3">
-              {profile.languages.map((l) => {
-                const styles = languageMeta[l.level as keyof typeof languageMeta] ?? languageMeta.default;
-
-                return (
-                  <li
-                    key={l.name}
-                    className="rounded-2xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${styles.iconWrap}`}>
-                          <Languages className="h-5 w-5" />
-                        </span>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-zinc-800 md:text-base">{l.name}</span>
-                          {styles.caption && <span className="text-xs text-zinc-500">{styles.caption}</span>}
-                        </div>
-                      </div>
-                      <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${styles.badge}`}>
-                        {l.level}
-                      </span>
-                    </div>
-                    <div className={`mt-4 h-2 w-full overflow-hidden rounded-full ${styles.track}`}>
-                      <div
-                        className={`h-full rounded-full bg-gradient-to-r ${styles.bar}`}
-                        style={{ width: `${styles.percent}%` }}
-                      />
-                    </div>
-                  </li>
-                );
-              })}
+              {profile.languages?.map((l: { name: string; level: string }) => (
+                <LanguageItem key={l.name} l={l} />
+              ))}
             </ul>
           </section>
 
@@ -373,39 +417,21 @@ export default function ResumePage() {
               </div>
             </header>
             <ul className="mt-5 flex flex-col gap-3">
-              {profile.techStacks?.map((stack) => {
-                const Icon = stackIconMap[stack.area as keyof typeof stackIconMap] ?? Code2;
-
-                return (
-                  <li
-                    key={stack.area}
-                    className="rounded-2xl border border-zinc-200 bg-white px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-indigo-600">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <div className="space-y-1">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                          {stack.area}
-                        </span>
-                        <p className="text-sm leading-snug text-zinc-700">
-                          {stack.items.join(" • ")}
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
+              {profile.techStacks?.map((stack: { area: string; items: readonly string[] }) => (
+                <StackItem key={stack.area} stack={stack} />
+              ))}
             </ul>
           </section>
         </div>
-
       </section>
 
-      <footer className="mx-auto max-w-5xl px-6 py-10 text-xs text-zinc-500">
-        Última atualização: {new Date().toLocaleDateString()}
-      </footer>
+      <footer className="mx-auto max-w-5xl px-6 py-10 text-xs text-zinc-500">Última atualização: {new Date().toLocaleDateString()}</footer>
     </main>
   );
+}
+
+// Helper for transforming percentage to scaleY (0..1)
+function progressToScale(percent: number) {
+  const clamped = Math.max(0, Math.min(100, percent || 0));
+  return clamped / 100;
 }
