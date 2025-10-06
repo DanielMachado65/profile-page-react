@@ -22,7 +22,7 @@ export const profile = {
     },
     {
       label: "LinkedIn",
-      value: "linkedin.com/in/danielmachado65",
+      value: "linkedin.com/in/daniel-machado-pintos",
       href: "https://www.linkedin.com/in/daniel-machado-pintos",
     },
   ],
